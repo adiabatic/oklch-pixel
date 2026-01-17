@@ -4,11 +4,15 @@ on:
   push:
     branches:
       - master
+    tags:
+      - "release/v*"
 
 jobs:
   build:
     name: build-${{ matrix.target }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -43,3 +47,39 @@ jobs:
           name: oklch-pixel-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/${{ matrix.bin }}
           if-no-files-found: error
+
+  release:
+    name: release
+    if: startsWith(github.ref, 'refs/tags/release/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Prepare release assets
+        shell: bash
+        run: |
+          mkdir -p release
+          for dir in dist/oklch-pixel-*; do
+            target=${dir#dist/oklch-pixel-}
+            if [[ -f "$dir/oklch-pixel.exe" ]]; then
+              cp "$dir/oklch-pixel.exe" "release/oklch-pixel-${target}.exe"
+            elif [[ -f "$dir/oklch-pixel" ]]; then
+              cp "$dir/oklch-pixel" "release/oklch-pixel-${target}"
+            else
+              echo "Binary not found in $dir" >&2
+              exit 1
+            fi
+          done
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
