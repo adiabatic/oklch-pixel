@@ -1,6 +1,6 @@
 # `oklch-pixel`
 
-`oklch-pixel` generates a 1×1 PNG image given an OKLCH color.
+`oklch-pixel` generates a 1-pixel PNG image given an OKLCH color.
 
 You might want to use this program if you want to have a solid-color desktop background that’s outside the sRGB gamut but is in the wider-gamut Display P3 color space. Put another way, you can use this program to get colors beyond what you can specify with sRGB hex codes like `#efdfa2`.
 
